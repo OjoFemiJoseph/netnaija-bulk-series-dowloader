@@ -21,7 +21,12 @@ def start_download(links):
     #webdriver has to be set to global because it is defined in a function, without that it loses autoatically when it
     #gets to the last line of the code
     global driver
-    driver = webdriver.Chrome()
+
+    chrome_options = webdriver.ChromeOptions()
+    prefs = {'download.default_directory' : '/home/josephojo/Desktop/Project/'}
+    chrome_options.add_experimental_option('prefs', prefs)
+    driver = webdriver.Chrome(chrome_options=chrome_options)
+    
     for link in links:
         try:
             driver.get(link)
@@ -31,10 +36,12 @@ def start_download(links):
                 try:
                     time.sleep(1)
                     netnaija_download_but = driver.find_element(By.XPATH, '//*[@id="content"]/div/div/div/div[1]/main/article/div[1]/div/div/div[1]/a')
-                    netnaija_download_but.click()
+                                                                        
+                    print(netnaija_download_but.text)
+                    driver.execute_script('arguments[0].click();', netnaija_download_but)
                     break
-                except:
-                    pass
+                except Exception as e:
+                    print(e)
 
             time.sleep(2)
             #find the download button on sabishare
@@ -102,7 +109,7 @@ st.write(f"Showing movies in {selected_category} category sorted by {selected_fi
 if selected_category=='Korean Series':
     filename = 'kdrama'
 else:
-    filename = 'others'
+    filename = 'series'
 
 with open(filename, 'r') as f:
     movie_list = json.load(f)
