@@ -8,10 +8,11 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from bs4 import BeautifulSoup as bs
 import streamlit as st
+import os
 
 logging.basicConfig(level=logging.INFO)
 
-def start_download(links):
+def start_download(links,season, title):
     """
     Downloads files from a list of links using Selenium.
     
@@ -21,9 +22,12 @@ def start_download(links):
     #webdriver has to be set to global because it is defined in a function, without that it loses autoatically when it
     #gets to the last line of the code
     global driver
-
+    download_directory = '/home/josephojo/Desktop/Project/'
+    path = f"{download_directory}{title}/{season}/"
+    if not os.path.exists(path):
+        os.makedirs(path)
     chrome_options = webdriver.ChromeOptions()
-    prefs = {'download.default_directory' : '/home/josephojo/Desktop/Project/'}
+    prefs = {'download.default_directory' : path}
     chrome_options.add_experimental_option('prefs', prefs)
     driver = webdriver.Chrome(chrome_options=chrome_options)
     
@@ -54,7 +58,7 @@ def start_download(links):
                 driver.switch_to.window(tab)
                 if tab != working_tab:
                     driver.close()
-            time.sleep(2)
+            time.sleep(5)
         except Exception as e:
             print(e)
     
@@ -85,13 +89,14 @@ def download_season(*args):
     - *args: A list of arguments passed from a Streamlit button.
     """
     st.write(f"Downloading...")
-    spec_seson = requests.get(*args)
+    link , season, title = args
+    spec_seson = requests.get(link)
     season_ep_soup = bs(spec_seson.text, 'lxml')
     season_ep_tag = season_ep_soup.find('div', {'class': 'video-files'})
     num_of_seasons_ep = season_ep_tag.find_all('article', {'class': "file-one shadow"})
     season_ep = {i.find('a').text: i.find('a')['href'] for i in num_of_seasons_ep}
     st.write(len(season_ep))
-    start_download(season_ep.values())
+    start_download(season_ep.values(),season,title)
 
 
 categories = ["Korean Series", "Hollywood", "Chinese", "Indian"]
@@ -142,5 +147,5 @@ for movie in movie_list[start_index:end_index]:
             st.write("Seasons:")
             for season,link in seasons.items():
                 st.write(season)
-                st.button("Download",key=f"{movie['title']}-{season}",on_click=download_season,args=[link])
+                st.button("Download",key=f"{movie['title']}-{season}",on_click=download_season,args=[link,season,movie['title']])
                 
