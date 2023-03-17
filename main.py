@@ -12,6 +12,26 @@ import os
 
 logging.basicConfig(level=logging.INFO)
 
+#check if file exists
+
+#download movie or subtitle
+def download_file(idx):
+    for i in range(3):
+        try:
+            time.sleep(1)
+            netnaija_download_but = driver.find_element(By.XPATH, f'//*[@id="content"]/div/div/div/div[1]/main/article/div[1]/div/div/div[{idx}]/a')
+                                                                   
+            print(netnaija_download_but.text)
+            driver.execute_script('arguments[0].click();', netnaija_download_but)
+            break
+        except Exception as e:
+            print(e)
+        
+def sabishare():
+    sabishare_download_but = driver.find_element(By.XPATH, '//*[@id="action-buttons-con"]/div/button')
+    #this clicks it regardless of popup, manually you woould have to close the pop up to click download
+    driver.execute_script('arguments[0].click();', sabishare_download_but)
+
 def start_download(links,season, title):
     """
     Downloads files from a list of links using Selenium.
@@ -36,22 +56,20 @@ def start_download(links,season, title):
             driver.get(link)
             time.sleep(2)
             #click that takes you to sabishare, it fails on first trial sometimes
-            for i in range(3):
-                try:
-                    time.sleep(1)
-                    netnaija_download_but = driver.find_element(By.XPATH, '//*[@id="content"]/div/div/div/div[1]/main/article/div[1]/div/div/div[1]/a')
-                                                                        
-                    print(netnaija_download_but.text)
-                    driver.execute_script('arguments[0].click();', netnaija_download_but)
-                    break
-                except Exception as e:
-                    print(e)
+            #download movie
+            download_file(1)
 
             time.sleep(2)
-            #find the download button on sabishare
-            sabishare_download_but = driver.find_element(By.XPATH, '//*[@id="action-buttons-con"]/div/button')
-            #this clicks it regardless of popup, manually you woould have to close the pop up to click download
-            driver.execute_script('arguments[0].click();', sabishare_download_but)
+            sabishare()
+            time.sleep(3)
+            
+
+            driver.get(link)
+            time.sleep(2)
+
+            #download subtitle
+            download_file(2)
+            sabishare()
             #close any tab might open from the action above
             working_tab = driver.current_window_handle
             for tab in driver.window_handles:
