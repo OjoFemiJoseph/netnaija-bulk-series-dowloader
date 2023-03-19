@@ -2,11 +2,11 @@ import requests
 from bs4 import BeautifulSoup as bs
 import json
 
-all_movies  = [['https://www.thenetnaija.net/videos/series/page/2','Series'],['https://www.thenetnaija.net/videos/kdrama/page/2','kdrama']]
+all_movies  = [['https://www.thenetnaija.net/videos/series/page/','Series'],['https://www.thenetnaija.net/videos/kdrama/page/','kdrama']]
 
 
 for series in all_movies:
-    html = requests.get(series[0]).text
+    html = requests.get(series[0]+'2').text
     soup = bs(html,'lxml')
 
     page_number = soup.find('ul',{'class':'pagination'}).find_all('li')[-2].text
@@ -14,7 +14,7 @@ for series in all_movies:
 
     data = []
     for i in range(1,int(page_number)+1):
-        link = f"https://www.thenetnaija.net/videos/series/page/{i}"
+        link = f"{series[0]}{i}"
         page_html = requests.get(link)
         page_soup = bs(page_html.text,'lxml')
         
@@ -30,6 +30,6 @@ for series in all_movies:
         
 
 
-
+    print(series[1])
     with open(series[1], 'w') as fout:
         json.dump(data, fout)

@@ -9,10 +9,9 @@ from selenium.webdriver.common.by import By
 from bs4 import BeautifulSoup as bs
 import streamlit as st
 import os
+import glob
 
 logging.basicConfig(level=logging.INFO)
-
-#check if file exists
 
 #download movie or subtitle
 def download_file(idx):
@@ -52,33 +51,44 @@ def start_download(links,season, title):
     driver = webdriver.Chrome(chrome_options=chrome_options)
     
     for link in links:
-        try:
-            driver.get(link)
-            time.sleep(2)
-            #click that takes you to sabishare, it fails on first trial sometimes
-            #download movie
-            download_file(1)
+        Flag = True
+        episode = f"*{link.rsplit('-',1)[-1].zfill(2)}*"
+        search_path = os.path.join(download_directory, path, '**', episode)
+        file_list = glob.glob(search_path, recursive=True)
 
-            time.sleep(2)
-            sabishare()
-            time.sleep(3)
-            
+        for file_path in file_list:
+            if not file_path.endswith(('.srt', '.crdownload')):
+                Flag = False
+        
+        if Flag:
 
-            driver.get(link)
-            time.sleep(2)
+            try:
+                driver.get(link)
+                time.sleep(2)
+                #click that takes you to sabishare, it fails on first trial sometimes
+                #download movie
+                download_file(1)
 
-            #download subtitle
-            download_file(2)
-            sabishare()
-            #close any tab might open from the action above
-            working_tab = driver.current_window_handle
-            for tab in driver.window_handles:
-                driver.switch_to.window(tab)
-                if tab != working_tab:
-                    driver.close()
-            time.sleep(5)
-        except Exception as e:
-            print(e)
+                time.sleep(2)
+                sabishare()
+                time.sleep(3)
+                
+
+                driver.get(link)
+                time.sleep(2)
+
+                #download subtitle
+                download_file(2)
+                sabishare()
+                #close any tab might open from the action above
+                working_tab = driver.current_window_handle
+                for tab in driver.window_handles:
+                    driver.switch_to.window(tab)
+                    if tab != working_tab:
+                        driver.close()
+                time.sleep(5)
+            except Exception as e:
+                print(e)
     
 def get_seasons(link):
     """
@@ -132,7 +142,7 @@ st.write(f"Showing movies in {selected_category} category sorted by {selected_fi
 if selected_category=='Korean Series':
     filename = 'kdrama'
 else:
-    filename = 'series'
+    filename = 'Series'
 
 with open(filename, 'r') as f:
     movie_list = json.load(f)
